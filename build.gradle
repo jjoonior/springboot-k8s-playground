@@ -24,14 +24,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation 'io.kubernetes:client-java:15.0.1'
-    implementation 'org.yaml:snakeyaml:1.33'
-}
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.yaml:snakeyaml:1.33' // SnakeYAML 버전을 강제
-    }
+    implementation 'io.fabric8:kubernetes-client:7.0.1'
 }
 
 tasks.named('test') {
