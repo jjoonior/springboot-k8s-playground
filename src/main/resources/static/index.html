@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Web Terminal</title>
+  <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css">
+  <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+</head>
+<body>
+<div id="terminal"></div>
+
+<script>
+  const term = new Terminal({
+    cursorBlink: true,
+    cols: 120,
+    rows: 30
+  });
+  term.open(document.getElementById('terminal'));
+
+  const socket = new SockJS('/ws-terminal');
+  const stompClient = Stomp.over(socket);
+
+  // Kubernetes 파드 정보 설정
+  const namespace = 'pading';
+  const podName = 'my-pod';
+  const containerName = ''; // optional
+  const sessionId = `${namespace}:${podName}:${containerName}`;
+
+  stompClient.connect({}, () => {
+    stompClient.subscribe(`/sub/terminal/${sessionId}`, (message) => {
+      term.write(message.body);
+    });
+
+    stompClient.send("/pub/terminal/connect", {}, sessionId);
+
+    term.onData(data => {
+      stompClient.send("/pub/terminal/input", {}, JSON.stringify({
+        sessionId: sessionId,
+        input: data
+      }));
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    term.fit();
+  });
+</script>
+</body>
+</html>
+
