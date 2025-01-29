@@ -1,5 +1,6 @@
 package site.pading.demo.controller;
 
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import site.pading.demo.service.TerminalService;
@@ -13,13 +14,13 @@ public class TerminalController {
     this.terminalService = terminalService;
   }
 
-  @MessageMapping("/terminal/connect")
-  public void connectToPod(String sessionId) throws Exception {
-    terminalService.connectToPod(sessionId);
+  @MessageMapping("/terminal/{terminalId}/connect")
+  public void connectToPod(@DestinationVariable String terminalId) throws Exception {
+    terminalService.connectToPod(terminalId);
   }
 
-  @MessageMapping("/terminal/input")
-  public void handleInput(TerminalInput input) {
-    terminalService.handleInput(input);
+  @MessageMapping("/terminal/{terminalId}/input")
+  public void handleInput(@DestinationVariable String terminalId, String input) {
+    terminalService.handleInput(terminalId, input);
   }
 }

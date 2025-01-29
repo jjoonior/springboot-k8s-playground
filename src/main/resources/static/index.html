@@ -18,27 +18,21 @@
   });
   term.open(document.getElementById('terminal'));
 
-  const socket = new SockJS('/ws-terminal');
+  const socket = new SockJS('/ws');
   const stompClient = Stomp.over(socket);
 
   // Kubernetes 파드 정보 설정
-  const namespace = 'pading';
-  const podName = 'my-pod';
-  const containerName = ''; // optional
-  const sessionId = `${namespace}:${podName}:${containerName}`;
+  const terminalId = crypto.randomUUID();
 
   stompClient.connect({}, () => {
-    stompClient.subscribe(`/sub/terminal/${sessionId}`, (message) => {
+    stompClient.subscribe(`/sub/terminal/${terminalId}`, (message) => {
       term.write(message.body);
     });
 
-    stompClient.send("/pub/terminal/connect", {}, sessionId);
+    stompClient.send(`/pub/terminal/${terminalId}/connect`, {}, null);
 
     term.onData(data => {
-      stompClient.send("/pub/terminal/input", {}, JSON.stringify({
-        sessionId: sessionId,
-        input: data
-      }));
+      stompClient.send(`/pub/terminal/${terminalId}/input`, {}, data);
     });
   });
 

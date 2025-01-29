@@ -25,7 +25,7 @@ public class TerminalService {
     this.messagingTemplate = messagingTemplate;
   }
 
-  public void connectToPod(String sessionId) throws Exception {
+  public void connectToPod(String terminalId) throws Exception {
     String namespace = "pading";
     String podName = "my-pod";
 
@@ -44,40 +44,42 @@ public class TerminalService {
 
           @Override
           public void onFailure(Throwable t, Response failureResponse) {
-            messagingTemplate.convertAndSend("/sub/terminal/" + sessionId,
+            messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
                 "Connection failed: " + t.getMessage());
-            bridges.remove(sessionId);
+            System.out.println("Connection failure");
+            bridges.remove(terminalId);
           }
 
           @Override
           public void onClose(int code, String reason) {
-            bridges.remove(sessionId);
+            System.out.println("Connection closed");
+            bridges.remove(terminalId);
           }
         })
         .exec("sh", "-c",
             "cd test && TERM=xterm-256color; export TERM; [ -x /bin/bash ] && /bin/bash || /bin/sh");
 
-    TerminalBridge bridge = new TerminalBridge(execWatch, sessionId);
-    bridges.put(sessionId, bridge);
+    TerminalBridge bridge = new TerminalBridge(execWatch, terminalId);
+    bridges.put(terminalId, bridge);
     bridge.start();
   }
 
-  public void handleInput(site.pading.demo.controller.TerminalInput input) {
-    TerminalBridge bridge = bridges.get(input.getSessionId());
+  public void handleInput(String terminalId, String input) {
+    TerminalBridge bridge = bridges.get(terminalId);
     if (bridge != null) {
-      bridge.sendInput(input.getInput());
+      bridge.sendInput(input);
     }
   }
 
   private class TerminalBridge {
 
     private final ExecWatch execWatch;
-    private final String sessionId;
+    private final String terminalId;
     private final OutputStream inputStream;
 
-    public TerminalBridge(ExecWatch execWatch, String sessionId) {
+    public TerminalBridge(ExecWatch execWatch, String terminalId) {
       this.execWatch = execWatch;
-      this.sessionId = sessionId;
+      this.terminalId = terminalId;
       this.inputStream = execWatch.getInput();
     }
 
@@ -93,10 +95,10 @@ public class TerminalService {
           int bytesRead;
           while ((bytesRead = stream.read(buffer)) != -1) {
             String content = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-            messagingTemplate.convertAndSend("/sub/terminal/" + sessionId, content);
+            messagingTemplate.convertAndSend("/sub/terminal/" + terminalId, content);
           }
         } catch (IOException e) {
-          messagingTemplate.convertAndSend("/sub/terminal/" + sessionId,
+          messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
               "\n[" + type + " READ ERROR] " + e.getMessage());
         }
       }).start();
@@ -107,7 +109,7 @@ public class TerminalService {
         inputStream.write(input.getBytes(StandardCharsets.UTF_8));
         inputStream.flush();
       } catch (IOException e) {
-        messagingTemplate.convertAndSend("/sub/terminal/" + sessionId,
+        messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
             "\n[INPUT WRITE ERROR] " + e.getMessage());
       }
     }
