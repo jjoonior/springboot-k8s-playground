@@ -16,7 +16,8 @@ public class TerminalController {
 
   @MessageMapping("/terminal/{terminalId}/connect")
   public void connectToPod(@DestinationVariable String terminalId) throws Exception {
-    terminalService.connectToPod(terminalId);
+    String destination = "/sub/terminal/" + terminalId;
+    terminalService.connectToPod(terminalId, destination);
   }
 
   @MessageMapping("/terminal/{terminalId}/input")

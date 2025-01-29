@@ -25,8 +25,7 @@ public class TerminalService {
     this.messagingTemplate = messagingTemplate;
   }
 
-  public void connectToPod(String terminalId) throws Exception {
-    String destination = "/sub/terminal/" + terminalId;
+  public void connectToPod(String terminalId, String destination) throws Exception {
     String namespace = "pading";
     String podName = "my-pod";
 
