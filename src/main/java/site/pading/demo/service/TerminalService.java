@@ -26,6 +26,7 @@ public class TerminalService {
   }
 
   public void connectToPod(String terminalId) throws Exception {
+    String destination = "/sub/terminal/" + terminalId;
     String namespace = "pading";
     String podName = "my-pod";
 
@@ -44,7 +45,7 @@ public class TerminalService {
 
           @Override
           public void onFailure(Throwable t, Response failureResponse) {
-            messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
+            messagingTemplate.convertAndSend(destination,
                 "Connection failed: " + t.getMessage());
             System.out.println("Connection failure");
             bridges.remove(terminalId);
@@ -59,7 +60,7 @@ public class TerminalService {
         .exec("sh", "-c",
             "cd test && TERM=xterm-256color; export TERM; [ -x /bin/bash ] && /bin/bash || /bin/sh");
 
-    TerminalBridge bridge = new TerminalBridge(execWatch, terminalId);
+    TerminalBridge bridge = new TerminalBridge(execWatch, terminalId, destination);
     bridges.put(terminalId, bridge);
     bridge.start();
   }
@@ -76,11 +77,13 @@ public class TerminalService {
     private final ExecWatch execWatch;
     private final String terminalId;
     private final OutputStream inputStream;
+    private final String destination;
 
-    public TerminalBridge(ExecWatch execWatch, String terminalId) {
+    public TerminalBridge(ExecWatch execWatch, String terminalId, String destination) {
       this.execWatch = execWatch;
       this.terminalId = terminalId;
       this.inputStream = execWatch.getInput();
+      this.destination = destination;
     }
 
     public void start() {
@@ -95,10 +98,10 @@ public class TerminalService {
           int bytesRead;
           while ((bytesRead = stream.read(buffer)) != -1) {
             String content = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-            messagingTemplate.convertAndSend("/sub/terminal/" + terminalId, content);
+            messagingTemplate.convertAndSend(destination, content);
           }
         } catch (IOException e) {
-          messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
+          messagingTemplate.convertAndSend(destination,
               "\n[" + type + " READ ERROR] " + e.getMessage());
         }
       }).start();
@@ -109,7 +112,7 @@ public class TerminalService {
         inputStream.write(input.getBytes(StandardCharsets.UTF_8));
         inputStream.flush();
       } catch (IOException e) {
-        messagingTemplate.convertAndSend("/sub/terminal/" + terminalId,
+        messagingTemplate.convertAndSend(destination,
             "\n[INPUT WRITE ERROR] " + e.getMessage());
       }
     }
