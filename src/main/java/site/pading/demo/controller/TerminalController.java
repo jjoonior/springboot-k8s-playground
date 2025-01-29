@@ -1,5 +1,6 @@
 package site.pading.demo.controller;
 
+import java.util.Map;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -24,5 +25,10 @@ public class TerminalController {
   @MessageMapping("/project/{projectName}/terminal/{terminalId}/input")
   public void handleInput(@DestinationVariable String terminalId, String input) {
     terminalService.handleInput(terminalId, input);
+  }
+
+  @MessageMapping("/project/{projectName}/terminal/{terminalId}/resize")
+  public void handleResize(@DestinationVariable String terminalId, Map<?, ?> resize) {
+    terminalService.handleResize(terminalId, resize);
   }
 }

@@ -75,6 +75,14 @@ public class TerminalService {
     }
   }
 
+  public void handleResize(String terminalId, Map<?, ?> resize) {
+    TerminalBridge bridge = bridges.get(terminalId);
+    if (bridge != null) {
+      bridge.resize((int) resize.get("cols"), (int) resize.get("rows"));
+    }
+  }
+
+
   private class TerminalBridge {
 
     private final ExecWatch execWatch;
@@ -117,6 +125,15 @@ public class TerminalService {
       } catch (IOException e) {
         messagingTemplate.convertAndSend(destination,
             "\n[INPUT WRITE ERROR] " + e.getMessage());
+      }
+    }
+
+    public synchronized void resize(int cols, int rows) {
+      try {
+        execWatch.resize(cols, rows);
+      } catch (Exception e) {
+        messagingTemplate.convertAndSend(destination,
+            "\n[RESIZE ERROR] " + e.getMessage());
       }
     }
   }
