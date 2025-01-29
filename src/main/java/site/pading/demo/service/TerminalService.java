@@ -9,21 +9,17 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class TerminalService {
 
   private final Map<String, TerminalBridge> bridges = new ConcurrentHashMap<>();
   private final KubernetesClient kubernetesClient;
   private final SimpMessagingTemplate messagingTemplate;
-
-  public TerminalService(KubernetesClient kubernetesClient,
-      SimpMessagingTemplate messagingTemplate) {
-    this.kubernetesClient = kubernetesClient;
-    this.messagingTemplate = messagingTemplate;
-  }
 
   public void connectToPod(String projectName, String terminalId, String destination)
       throws Exception {
