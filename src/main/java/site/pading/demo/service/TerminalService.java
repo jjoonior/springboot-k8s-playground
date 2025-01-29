@@ -25,7 +25,11 @@ public class TerminalService {
     this.messagingTemplate = messagingTemplate;
   }
 
-  public void connectToPod(String terminalId, String destination) throws Exception {
+  public void connectToPod(String projectName, String terminalId, String destination)
+      throws Exception {
+    // projectName 에 해당하는 podName 조회
+    // 또는 podName 을 projectName 으로 사용
+
     String namespace = "pading";
     String podName = "my-pod";
 

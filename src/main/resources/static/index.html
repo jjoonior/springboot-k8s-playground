@@ -22,17 +22,18 @@
   const stompClient = Stomp.over(socket);
 
   // Kubernetes 파드 정보 설정
+  const projectName = "test";
   const terminalId = crypto.randomUUID();
 
   stompClient.connect({}, () => {
-    stompClient.subscribe(`/sub/terminal/${terminalId}`, (message) => {
+    stompClient.subscribe(`/sub/project/${projectName}/terminal/${terminalId}`, (message) => {
       term.write(message.body);
     });
 
-    stompClient.send(`/pub/terminal/${terminalId}/connect`, {}, null);
+    stompClient.send(`/pub/project/${projectName}/terminal/${terminalId}/connect`, {}, null);
 
     term.onData(data => {
-      stompClient.send(`/pub/terminal/${terminalId}/input`, {}, data);
+      stompClient.send(`/pub/project/${projectName}/terminal/${terminalId}/input`, {}, data);
     });
   });
 

@@ -14,13 +14,14 @@ public class TerminalController {
     this.terminalService = terminalService;
   }
 
-  @MessageMapping("/terminal/{terminalId}/connect")
-  public void connectToPod(@DestinationVariable String terminalId) throws Exception {
-    String destination = "/sub/terminal/" + terminalId;
-    terminalService.connectToPod(terminalId, destination);
+  @MessageMapping("/project/{projectName}/terminal/{terminalId}/connect")
+  public void connectToPod(@DestinationVariable String projectName,
+      @DestinationVariable String terminalId) throws Exception {
+    String destination = "/sub/project/" + projectName + "/terminal/" + terminalId;
+    terminalService.connectToPod(projectName, terminalId, destination);
   }
 
-  @MessageMapping("/terminal/{terminalId}/input")
+  @MessageMapping("/project/{projectName}/terminal/{terminalId}/input")
   public void handleInput(@DestinationVariable String terminalId, String input) {
     terminalService.handleInput(terminalId, input);
   }
